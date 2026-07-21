@@ -593,6 +593,31 @@ def test_vllm_lora_worker_no_strict_len_assertion_on_lora_tensors():
     )
 
 
+def test_vllm_lora_worker_clears_weights_mapper_for_in_memory_tensors():
+    """unslothai/unsloth#7283: in-memory GRPO rollout must not pass
+    hf_to_vllm_mapper into from_lora_tensors on vLLM >=0.25.0."""
+    src = (
+        pathlib.Path(__file__).resolve().parents[1]
+        / "unsloth_zoo"
+        / "vllm_lora_worker_manager.py"
+    ).read_text(encoding="utf-8")
+    tensors_block = re.search(
+        r"if getattr\(lora_request, \"lora_tensors\", None\) is not None:.*?"
+        r"else:\s*\n\s*load_method = self\._lora_model_cls\.from_local_checkpoint",
+        src,
+        flags=re.DOTALL,
+    )
+    assert tensors_block, (
+        "Could not locate the from_lora_tensors branch in "
+        "vllm_lora_worker_manager.py"
+    )
+    block = tensors_block.group(0)
+    assert 'kwargs["weights_mapper"] = None' in block, (
+        "from_lora_tensors path must clear weights_mapper for in-memory "
+        "LoRA tensors (unslothai/unsloth#7283)"
+    )
+
+
 def test_only_one_canonical_version_helper():
     """PR #437 / #461: only one top-level `def Version(...)` across zoo
     (no duplicate divergent helpers)."""
