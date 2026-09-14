@@ -26,7 +26,7 @@ import functools
 # `unsloth_zoo.temporary_patches.misc`, where a two-level relative import
 # raises "attempted relative import beyond top-level package".
 try:
-    from ..log import logger
+    from unsloth_zoo.log import logger
 except (ImportError, ValueError):
     import logging
     logger = logging.getLogger("unsloth_zoo.log")
@@ -162,7 +162,8 @@ def patch_merge_quantization_configs():
     except Exception as e:
         return raise_error("", e)
 
-    patch_function(transformers.quantizers.auto.AutoHfQuantizer, "merge_quantization_configs", merge_quantization_configs)
+    # Defined by the exec(source, globals()) in the try above.
+    patch_function(transformers.quantizers.auto.AutoHfQuantizer, "merge_quantization_configs", merge_quantization_configs)  # noqa: F821
 pass
 TEMPORARY_PATCHES.append(patch_merge_quantization_configs)
 

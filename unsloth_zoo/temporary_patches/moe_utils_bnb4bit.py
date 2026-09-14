@@ -40,7 +40,8 @@ try:
     import bitsandbytes as bnb
     from bitsandbytes.nn import Params4bit
     HAS_BNB = True
-except ImportError:
+except Exception:
+    # Not just ImportError: a bitsandbytes mismatched with torch fails its own import with AttributeError.
     HAS_BNB = False
     Params4bit = None
 
@@ -326,7 +327,8 @@ def patch_bnb4bit_quantizer_param_needs_quantization():
     if getattr(original_param_needs_quantization, "_unsloth_moe_patched", False):
         return
 
-    def patched_param_needs_quantization(self, model: "PreTrainedModel", param_name: str, **kwargs) -> bool:
+    # PreTrainedModel is a string annotation, never imported or evaluated here.
+    def patched_param_needs_quantization(self, model: "PreTrainedModel", param_name: str, **kwargs) -> bool:  # noqa: F821
         if original_param_needs_quantization(self, model, param_name, **kwargs):
             return True
 
